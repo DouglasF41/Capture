@@ -61,7 +61,6 @@ extension Client {
     }
     
     func downloadImage(url: String,
-                       photo: Photo,
                        completion: @escaping (_ data: Data?,_ error: Error?) -> Void) {
         
         let request = URLRequest(url: URL(string: url)!)
