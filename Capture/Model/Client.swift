@@ -11,17 +11,14 @@ class Client : NSObject {
     
     // shared session
     var session = URLSession.shared
-    var page = Int()
-    
     
     override init() {
         super.init()
     }
     
     
-    func taskForGETPhotos(parameters: [String:AnyObject],completionHandlerForGETtingData: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-        
-        
+    func taskForFetchingPhotos(parameters: [String: AnyObject],
+                               completion: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
         let request = NSMutableURLRequest(url: flickrURLFromParameters(parameters))
         
         let task = session.dataTask(with: request as URLRequest) { (data, response, error) in
@@ -29,7 +26,8 @@ class Client : NSObject {
             func sendError(_ error: String) {
                 print(error)
                 let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForGETtingData(nil, NSError(domain: "taskForGETPhotos", code: 1, userInfo: userInfo))
+                completion(nil, NSError(domain: "taskForFetchingPhotos",
+                                        code: 1, userInfo: userInfo))
             }
             
             /* GUARD: Was there an error? */
@@ -50,22 +48,18 @@ class Client : NSObject {
                 return
             }
             
+            if let str = String(data: data, encoding: .utf8) {
+                print("This is the data\(str)")
+            }
+            
             // parse the data
-            self.ConvertDataWithCompletionHandler(data, completionHandlerForConvertData: completionHandlerForGETtingData)
-            
-            
-    }
-        
+            self.convertDataWithCompletionHandler(data, completionHandlerForConvertData: completion)
+        }
         task.resume()
-
         return task
-        
-        
     }
     
-    
-    
-    private func ConvertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
+    private func convertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
         
         var parsedResult: AnyObject! = nil
         do {
@@ -74,10 +68,7 @@ class Client : NSObject {
             let userInfo = [NSLocalizedDescriptionKey : "Could not get the data as JSON: '\(data)'"]
             completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
-        
         completionHandlerForConvertData(parsedResult, nil)
-        
-        
     }
     
     private func flickrURLFromParameters(_ parameters: [String:AnyObject]) -> URL {
@@ -102,5 +93,4 @@ class Client : NSObject {
         }
         return Singleton.sharedInstance
     }
-    
 }

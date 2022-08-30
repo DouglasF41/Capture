@@ -6,8 +6,7 @@
 //
 
 struct Constants {
-    struct Flickr {
-        
+    struct Flickr {        
         static let APIScheme = "https"
         static let APIHost = "api.flickr.com"
         static let APIPath = "/services/rest"
@@ -17,31 +16,21 @@ struct Constants {
     struct FlickrParameterKeys {
         static let Method = "method"
         static let APIKey = "api_key"
-        static let GalleryID = "gallery_id"
         static let Extras = "extras"
         static let Format = "format"
         static let NoJSONCallback = "nojsoncallback"
         static let SafeSearch = "safe_search"
-        static let Place = "place_id"
-        static let Text = "text"
-        static let Lat = "lat"
-        static let Lon = "lon"
-        static let MinUploadDate = "min_upload_date"
-        static let BoundingBox = "bbox"
         static let Page = "page"
         static let PerPage = "per_page"
     }
     
     // MARK: Flickr Parameter Values
     struct FlickrParameterValues {
-        static let SearchMethod = "flickr.photos.search"
-        static let APIKey = "ccc4b70958dd49e34bad803bb2f71503"
+        static let SearchMethod = "flickr.photos.getRecent"
+        static let APIKey = "1bec825b8e76d3628dd94f85f0744a32"
         static let ResponseFormat = "json"
         static let DisableJSONCallback = "1" /* 1 means "yes" */
-        static let GalleryPhotosMethod = "flickr.galleries.getPhotos"
-        static let GalleryID = "5704-72157622566655097"
         static let MediumURL = "url_m"
-        static let MinUploadDate = "1420912538"
         static let UseSafeSearch = "1"
     }
     

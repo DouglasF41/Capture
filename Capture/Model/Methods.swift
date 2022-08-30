@@ -6,12 +6,11 @@
 //
 
 import Foundation
-import UIKit
 
 extension Client {
     
-    func getLocationPhotos(_completionHandlerForPhotos: @escaping (_ result: [String]?, _ error: NSError?) -> Void) {
-        
+    func fetchPhotos(_completionHandlerForPhotos: @escaping (_ result: [Photo]?,
+                                                             _ error: NSError?) -> Void) {
         let randomPage = Int(arc4random_uniform(UInt32(40))) + 1
         
         let methodParameters = [
@@ -25,33 +24,25 @@ extension Client {
             Constants.FlickrParameterKeys.NoJSONCallback: Constants.FlickrParameterValues.DisableJSONCallback
         ] as [String : Any]
         
-        
         let _: String = Constants.Flickr.APIScheme + Constants.Flickr.APIHost + Constants.Flickr.APIPath
         
         /* Make request */
-        _ = taskForGETPhotos(parameters: methodParameters as [String : AnyObject]) { (results, error) in
+        _ = taskForFetchingPhotos(parameters: methodParameters as [String : AnyObject]) { (results, error) in
             
             /* Send data to the completion handler */
             if let error = error {
-                
                 _completionHandlerForPhotos(nil, error)
-                
             } else {
-                
-                /* GUARD: Is the "photos" key in our result? */
-                if let results = results as? [String:Any] {
+                if let results = results as? [String: Any] {
                     
                     /* GUARD: Is the "photo" key in photosDictionary? */
                     guard let photosArray = results[Constants.FlickrResponseKeys.Photos] as? [String: Any] else {
                         print("Cannot find key '\(Constants.FlickrResponseKeys.Photo)' in \(results)")
                         return
                     }
-                    
-                    guard let photo = photosArray["photo"] as? [[String : Any]] else {
-                        
-                        print("array paring failure")
+                    guard let photo = photosArray["photo"] as? [[String : AnyObject]] else {
+                        print("array parsing failure")
                         return
-                        
                     }
                     
                     if photo.count == 0 {
@@ -59,28 +50,18 @@ extension Client {
                         _completionHandlerForPhotos(nil, statusCodeError)
                         return
                     }
-                    
-                    var imagesString: [String] = []
-                    
-                    for i in 0...photo.count - 1 {
-                        let photoDictionary = photo[i] as [String: Any]
-                        let imgURL = photoDictionary["url_m"] as! String
-                        imagesString.append(imgURL)
-                    }
-                    _completionHandlerForPhotos(imagesString, nil)
-                    
+                    let photosFromResults = Photo.photosFromResults(photo)
+                    print(photosFromResults)
+                    _completionHandlerForPhotos(photosFromResults, nil)
                 } else {
-                    
-                    
-                    _completionHandlerForPhotos(nil, NSError(domain: "getLocationPhotos parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse getLocationPhotos"]))
-                    
+                    _completionHandlerForPhotos(nil, NSError(domain: "fetchPhotos parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse fetchPhotos"]))
                 }
-            }            
+            }
         }
     }
     
-    
     func downloadImage(url: String,
+                       photo: Photo,
                        completion: @escaping (_ data: Data?,_ error: Error?) -> Void) {
         
         let request = URLRequest(url: URL(string: url)!)
@@ -90,11 +71,10 @@ extension Client {
             if error == nil {
                 if let data = data {
                     print("Got data!")
-                    completion(data,nil)
+                    completion(data, nil)
                 }
-                
-            }else {
-                completion(nil,error?.localizedDescription as? Error)
+            } else {
+                completion(nil, error?.localizedDescription as? Error)
                 print(error!)
             }
         }

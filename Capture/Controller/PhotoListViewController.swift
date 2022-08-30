@@ -2,107 +2,70 @@
 //  PhotoListViewController.swift
 //  Capture
 //
-//  Created by Helen Whittam on 28/08/2022.
+//  Created by Douglas Fuller on 28/08/2022.
 //
 
-import Foundation
 import UIKit
 
 class PhotoViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
+    @IBOutlet private weak var photoList: UITableView!
+    
+    private var photosArray = [Photo]()
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return photosArray.count
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let photo = photosArray[(indexPath as NSIndexPath).row]
+        
+        let controller = (storyboard?.instantiateViewController(withIdentifier: "Detail") as? DescriptionViewControlller)!
+        controller.imageURL = photo.url_m
+        controller.photoDescription = photo.title
+        navigationController?.pushViewController(controller, animated: true)
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         <#code#>
     }
     
-    
-var pictures: [Photo] = [Photo]()
-var photoURLs:[String] = [String]()
-var picture: Photo!
-var photosArray = [Photo]()
-    
-    @IBOutlet weak var photoList: UITableView!
-    
-
     private func loadPictures() {
-       // fetchRequest.sortDescriptors = []
-
-            print("no photos")
-            Client.sharedInstance().getLocationPhotos{ (photoURLs, error) in
-                if let photoURLs = photoURLs {
-                    self.photoURLs = photoURLs
-                    for item in photoURLs{
-                        performUIUpdatesOnMain {
-                            let picture = Photo(context: self.coreDataStack.viewContext)
-                            picture.imageURL = item
-                            picture.pin = self.pin
-                            self.photosArray.append(picture)
-                            try? self.coreDataStack.viewContext.save()
-                            self.photoAlbum.reloadData()
-                            print("Downloaded")
+        Client.sharedInstance().fetchPhotos{ (photos, error) in
+            if let photos = photos {
+                self.photosArray = photos
+             //   var imageDataArray = [Data]()
+                for photo in photos {
+                    Client.sharedInstance().downloadImage(url: photo.url_m, photo: photo) { data, error in
+                        if let error = error {
+                            print(error)
+                        } else {
+                            var photo = photo
+                            DispatchQueue.main.async {
+                                if let data = data {
+                                    photo.imageData = data
+                                }
+                            }
                         }
                     }
-                    
-                    
-                } else {
-                    print(error ?? "empty error")
                 }
+                DispatchQueue.main.async {
+                    
+                    print("Downloaded")
+                    self.photoList.delegate = self
+                    self.photoList.dataSource = self
+                    sleep(3)
+                    self.photoList.reloadData()
+                }                
+            } else {
+                print(error ?? "empty error")
             }
-            
         }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        photoList.rowHeight = 145
         loadPictures()
     }
-    
-
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
-        
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoTableViewCell", for: indexPath) as! PhotoTableViewCell
-        let photo = photosArray[(indexPath as NSIndexPath).row]
-        
-        // Set the image!
-        cell.photoImageView.image = UIImage()
-        if let data = photo.imageData {
-            cell.photoImageView.image =  UIImage(data: data)
-        } else {
-            Client.sharedInstance().downloadImage(url: photo.imageURL ?? "oops") { (data, error) in
-                if let error = error {
-                    
-                    print(error)
-                } else{
-                    performUIUpdatesOnMain {
-                        cell.photoImageView.image =  UIImage(data: data!)
-                        photo.imageData = data
-                        try?  self.coreDataStack.viewContext.save()
-                    }
-                }
-            }
-        }
-        
-        return cell
-    }
-    
-    
-    
-    
-    
-//    @IBAction func newCollection(_ sender: Any) {
-//
-//
-//        let albumToDelete = fetchedResultsController.fetchedObjects
-//        for photo in albumToDelete!{
-//            coreDataStack.viewContext.delete(photo)
-//        }
-//        try? coreDataStack.viewContext.save()
-//
-//        reloadPictures()
-//    }
-
 }

@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  Capture
 //
-//  Created by Helen Whittam on 28/08/2022.
+//  Created by Douglas Fuller on 28/08/2022.
 //
 
 import UIKit

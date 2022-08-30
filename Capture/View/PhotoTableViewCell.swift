@@ -2,22 +2,20 @@
 //  PhotoTableViewCell.swift
 //  Capture
 //
-//  Created by Helen Whittam on 28/08/2022.
+//  Created by Douglas Fuller on 28/08/2022.
 //
 
 import UIKit
 
 class PhotoTableViewCell: UITableViewCell {
+    
+    @IBOutlet weak var photoImageView: UIImageView!
 
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
+    override func prepareForReuse() {
+        photoImageView.image = nil
     }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
-    }
-
 }
+
+
+
+
